@@ -28,13 +28,22 @@ namespace Optimus
                 return configuration;
             }
             
-            return JsonFiles.ReadJson<OptimusConfiguration>(configurationPath);
+            return JsonFile.Read<OptimusConfiguration>(configurationPath);
         }
 
         public void SaveTo(string path)
         {
             var configurationPath = Path.Combine(path, FileName);
-            JsonFiles.WriteJson(this, configurationPath);
+            JsonFile.Write(this, configurationPath);
+        }
+
+        private void SanityCheck()
+        {
+            if (FileExtensions.IsNullOrEmpty())
+                throw new OptimusConfigurationException($"{nameof(FileExtensions)} has no values");
+            
+            if (TinyPngApiKeys.IsNullOrEmpty())
+                throw new OptimusConfigurationException($"{nameof(TinyPngApiKeys)} has no values");
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -60,6 +61,21 @@ namespace Optimus.Tests
             foreach (var file in untracked)
             {
                 Debug.WriteLine(file);
+            }
+        }
+
+        [Test]
+        public async Task Optimize()
+        {
+            var tracker = new OptimusFileTracker(@"C:\Users\xleon\Projects\Pockit", new GitMediaSearch());
+            var (tracked, untracked) = await tracker.Track();
+            var optimizer = new TestOptimizer();
+            
+            foreach (var file in untracked)
+            {
+                var temp = Path.Combine(Path.GetTempPath(), file);
+                var optimized = await optimizer.Optimize(file, temp);
+                Debug.WriteLine(optimized);
             }
         }
     }
