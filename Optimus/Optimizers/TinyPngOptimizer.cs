@@ -4,9 +4,11 @@ using System.Threading.Tasks;
 using Optimus.Contracts;
 using Optimus.Exceptions;
 using Optimus.Model;
+using Polly;
+using Polly.Retry;
 using Serilog;
 using TinifyAPI;
-using Exception = System.Exception;
+using Exception = System.Exception; // Tinify library has a class called "Exception" WTF
 
 namespace Optimus.Optimizers
 {
@@ -47,7 +49,7 @@ namespace Optimus.Optimizers
                     _logger.Information($"Validating TinyPng api key {key}...");
                     
                     Tinify.Key = key;
-                    await Tinify.Validate();
+                    await GetRetryPolicy().ExecuteAsync(Tinify.Validate);
                     
                     _logger.Information("Api key is working!");
                     _logger.Information($"Compression count this month with key {key}: {Tinify.CompressionCount}");
@@ -70,7 +72,8 @@ namespace Optimus.Optimizers
             try
             {
                 var source = Tinify.FromFile(request.FilePath);
-                await source.ToFile(request.FilePath);
+
+                await GetRetryPolicy().ExecuteAsync(() => source.ToFile(request.FilePath));
                 
                 return new OptimizeResult(true, request.FilePath, request.Length);
             }
@@ -79,21 +82,20 @@ namespace Optimus.Optimizers
                 // Verify your API key and account limit.
 
                 _apiKeys = _apiKeys.Where(x => x != Tinify.Key).ToArray();
-                var otherApiKeys = _apiKeys.ToList();
-                
-                if(!otherApiKeys.Any())
+
+                if(!_apiKeys.Any())
                     throw new ApiAccessException(e.Message);
 
                 string errorMessage = null;
                 
-                foreach (var key in otherApiKeys)
+                foreach (var key in _apiKeys)
                 {
                     try
                     {
                         _logger.Information($"Validating TinyPng api key {key}...");
                         
                         Tinify.Key = key;
-                        await Tinify.Validate();
+                        await GetRetryPolicy().ExecuteAsync(Tinify.Validate);
                         
                         _logger.Information("Api key is working!");
                         _logger.Information($"[{nameof(TinyPngOptimizer)}] " +
@@ -106,7 +108,7 @@ namespace Optimus.Optimizers
                         errorMessage = ex.Message;
                         _logger.Error($"TinyPng api key {key} not valid => {e.Message}");
                         
-                        if (key.Equals(otherApiKeys.Last()))
+                        if (key.Equals(_apiKeys.Last()))
                         {
                             Log.Error("Could not initialize TinyPng because none of the provided api keys could be validated");
                         }
@@ -115,20 +117,22 @@ namespace Optimus.Optimizers
                 
                 throw new ApiAccessException(errorMessage);
             }
-            // TODO retry policy for ServerException and ConnectionException
-//            catch (ServerException e)
-//            {
-//                // Temporary issue with the Tinify API.
-//            }
-//            catch (ConnectionException e)
-//            {
-//                // A network connection error occurred.
-//            }
             catch (Exception e)
             {
                 // Something else went wrong, unrelated to the Tinify API.
                 return new OptimizeResult(false, request.FilePath, errorMessage: e.Message);
             }
         }
+
+        private AsyncRetryPolicy GetRetryPolicy() 
+            => Policy
+                .Handle<Exception>(ex => ex is ServerException || ex is ConnectionException)
+                .WaitAndRetryAsync(6, 
+                    attempt => TimeSpan.FromSeconds(0.1 * Math.Pow(2, attempt)), // Back off!  2, 4, 8, 16 etc times 1/4-second
+                    (exception, calculatedWaitDuration) =>  
+                    {
+                        _logger.Warning(exception.Message);
+                        _logger.Warning($"Delaying retry for {calculatedWaitDuration.TotalMilliseconds} ms...");
+                    });
     }
 }

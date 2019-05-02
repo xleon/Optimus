@@ -9,7 +9,7 @@ using Shouldly;
 namespace Optimus.Tests
 {
     [TestFixture]
-    public class TinyPngOptimerTests : BaseTest
+    public class TinyPngOptimizerTests : BaseTest
     {
         [Test]
         public void ApiKey_should_be_provided_in_constructor()

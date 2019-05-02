@@ -12,7 +12,7 @@ using TinifyAPI;
 namespace Optimus.Tests
 {
     [TestFixture]
-    public class TinyPngOptimerIntegrationTests : BaseTest
+    public class TinyPngOptimizerIntegrationTests : BaseTest
     {
         private const string Key1 = "EqMJnscp5i6PXT2bLuV36ktbvCD11lCi";
         
