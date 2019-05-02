@@ -1,6 +1,8 @@
 using System.IO;
+using Optimus.Exceptions;
+using Optimus.Helpers;
 
-namespace Optimus
+namespace Optimus.Model
 {
     public class OptimusConfiguration
     {

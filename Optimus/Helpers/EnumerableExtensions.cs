@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Optimus
+namespace Optimus.Helpers
 {
     public static class EnumerableExtensions
     {

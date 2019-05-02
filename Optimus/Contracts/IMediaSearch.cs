@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Optimus
+namespace Optimus.Contracts
 {
     public interface IMediaSearch
     {

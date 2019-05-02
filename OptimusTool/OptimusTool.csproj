@@ -3,10 +3,26 @@
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>netcoreapp2.1</TargetFramework>
+        <PackAsTool>true</PackAsTool>
+        <PackageId>optimustool</PackageId>
+        <PackageOutputPath>./nupkg</PackageOutputPath>
+        <ToolCommandName>optimus</ToolCommandName>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+        <Authors>Diego Ponce de León</Authors>
+        <Description>Reduce the file size your project images</Description>
+        <PackageProjectUrl>https://github.com/xleon/Optimus</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/xleon/Optimus</RepositoryUrl>
+        <PackageVersion>1.0.0</PackageVersion>
+        <!--        <PackageReleaseNotes></PackageReleaseNotes>-->
     </PropertyGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Optimus\Optimus.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
     </ItemGroup>
 
 </Project>

@@ -11,11 +11,21 @@
         <PackageReference Include="Moq" Version="4.10.1" />
         <PackageReference Include="NUnit" Version="3.11.0" />
         <PackageReference Include="NUnit3TestAdapter" Version="3.13.0" />
+        <PackageReference Include="Serilog.Sinks.Debug" Version="1.0.1" />
         <PackageReference Include="Shouldly" Version="3.0.2" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Optimus\Optimus.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Images\arandano.jpg">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Images\file.txt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Optimus.Contracts;
+using Optimus.Model;
 
 namespace Optimus
 {
@@ -27,7 +29,7 @@ namespace Optimus
             _trackerFile = Path.Combine(directoryPath, _fileName);
         }
 
-        public async Task<(IEnumerable<string> trackedFiles, IEnumerable<string> untrackedfiles)> Track()
+        public async Task<(IEnumerable<string> trackedFiles, IEnumerable<string> untrackedfiles)> GetFiles()
         {
             var config = OptimusConfiguration.GetOrCreate(_directoryPath);
             var trackedFiles = ReadTrackedFiles().ToList();
@@ -47,7 +49,7 @@ namespace Optimus
                 if (trackedFiles.Count != trackedCount)
                 {
                     // if we removed any of the tracked files because they don´t exist any more in the 
-                    // file system, overwrite the txt to reflect changes
+                    // file system, overwrite the tracker file to reflect changes
                     File.WriteAllLines(_trackerFile, trackedFiles);
                 }
             }
@@ -56,6 +58,11 @@ namespace Optimus
                 .Where(x => !trackedFiles.Contains(x));
 
             return (trackedFiles, untrackedFiles);
+        }
+
+        public void Track(string file)
+        {
+            File.AppendAllLines(_trackerFile, new []{file});
         }
 
         private IEnumerable<string> ReadTrackedFiles()

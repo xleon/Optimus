@@ -1,6 +1,6 @@
 using System;
 
-namespace Optimus
+namespace Optimus.Exceptions
 {
     internal class OptimusConfigurationException : Exception
     {
