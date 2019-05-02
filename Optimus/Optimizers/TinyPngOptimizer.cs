@@ -16,6 +16,7 @@ namespace Optimus.Optimizers
     {
         private string[] _apiKeys;
         private readonly ILogger _logger;
+        private readonly AsyncRetryPolicy _policy;
 
         public TinyPngOptimizer(string[] apiKeys)
         {
@@ -38,6 +39,16 @@ namespace Optimus.Optimizers
             _apiKeys = apiKeys.Select(x => x.Trim()).ToArray();
 
             Tinify.Key = _apiKeys.First();
+            
+            _policy = Policy
+                .Handle<Exception>(ex => ex is ServerException || ex is ConnectionException)
+                .WaitAndRetryAsync(6, 
+                    attempt => TimeSpan.FromSeconds(0.1 * Math.Pow(2, attempt)), // Back off!  2, 4, 8, 16 etc times 1/4-second
+                    (exception, calculatedWaitDuration) =>  
+                    {
+                        _logger.Warning(exception.Message);
+                        _logger.Warning($"Delaying retry for {calculatedWaitDuration.TotalMilliseconds} ms...");
+                    });
         }
 
         public async Task Initialize()
@@ -49,7 +60,7 @@ namespace Optimus.Optimizers
                     _logger.Information($"Validating TinyPng api key {key}...");
                     
                     Tinify.Key = key;
-                    await GetRetryPolicy().ExecuteAsync(Tinify.Validate);
+                    await _policy.ExecuteAsync(Tinify.Validate);
                     
                     _logger.Information("Api key is working!");
                     _logger.Information($"Compression count this month with key {key}: {Tinify.CompressionCount}");
@@ -73,13 +84,13 @@ namespace Optimus.Optimizers
             {
                 var source = Tinify.FromFile(request.FilePath);
 
-                await GetRetryPolicy().ExecuteAsync(() => source.ToFile(request.FilePath));
+                await _policy.ExecuteAsync(() => source.ToFile(request.FilePath));
                 
                 return new OptimizeResult(true, request.FilePath, request.Length);
             }
             catch (AccountException e)
             {
-                // Verify your API key and account limit.
+                // This happens if your API key is wrong or you´ve reached account limits
 
                 _apiKeys = _apiKeys.Where(x => x != Tinify.Key).ToArray();
 
@@ -95,7 +106,7 @@ namespace Optimus.Optimizers
                         _logger.Information($"Validating TinyPng api key {key}...");
                         
                         Tinify.Key = key;
-                        await GetRetryPolicy().ExecuteAsync(Tinify.Validate);
+                        await _policy.ExecuteAsync(Tinify.Validate);
                         
                         _logger.Information("Api key is working!");
                         _logger.Information($"[{nameof(TinyPngOptimizer)}] " +
@@ -123,16 +134,5 @@ namespace Optimus.Optimizers
                 return new OptimizeResult(false, request.FilePath, errorMessage: e.Message);
             }
         }
-
-        private AsyncRetryPolicy GetRetryPolicy() 
-            => Policy
-                .Handle<Exception>(ex => ex is ServerException || ex is ConnectionException)
-                .WaitAndRetryAsync(6, 
-                    attempt => TimeSpan.FromSeconds(0.1 * Math.Pow(2, attempt)), // Back off!  2, 4, 8, 16 etc times 1/4-second
-                    (exception, calculatedWaitDuration) =>  
-                    {
-                        _logger.Warning(exception.Message);
-                        _logger.Warning($"Delaying retry for {calculatedWaitDuration.TotalMilliseconds} ms...");
-                    });
     }
 }
