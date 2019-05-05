@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Optimus.Contracts;
@@ -14,9 +15,10 @@ namespace Optimus.Optimizers
 {
     public class TinyPngOptimizer : IOptimizer
     {
-        private string[] _apiKeys;
         private readonly ILogger _logger;
-        private readonly AsyncRetryPolicy _policy;
+        private readonly Queue<string> _apiKeys;
+        private readonly AsyncRetryPolicy _networkPolicy;
+        private readonly AsyncRetryPolicy _accountPolicy;
 
         public TinyPngOptimizer(string[] apiKeys)
         {
@@ -36,102 +38,70 @@ namespace Optimus.Optimizers
                     nameof(apiKeys));
             }
             
-            _apiKeys = apiKeys.Select(x => x.Trim()).ToArray();
-
-            Tinify.Key = _apiKeys.First();
+            _apiKeys = new Queue<string>(apiKeys.Select(x => x.Trim()));
             
-            _policy = Policy
-                .Handle<Exception>(ex => ex is ServerException || ex is ConnectionException)
+            _networkPolicy = Policy
+                .Handle<ServerException>()
+                .Or<ConnectionException>()
                 .WaitAndRetryAsync(6, 
-                    attempt => TimeSpan.FromSeconds(0.1 * Math.Pow(2, attempt)), // Back off!  2, 4, 8, 16 etc times 1/4-second
+                    attempt => TimeSpan.FromSeconds(0.2 * Math.Pow(2, attempt)),
                     (exception, calculatedWaitDuration) =>  
                     {
                         _logger.Warning(exception.Message);
                         _logger.Warning($"Delaying retry for {calculatedWaitDuration.TotalMilliseconds} ms...");
                     });
+            
+            _accountPolicy = Policy
+                .Handle<AccountException>()
+                .RetryAsync((exception, calculatedWaitDuration) => Validate());
         }
-
-        public async Task Initialize()
+        
+        private async Task Validate()
         {
-            foreach (var key in _apiKeys)
+            while (_apiKeys.TryDequeue(out var key))
             {
                 try
                 {
-                    _logger.Information($"Validating TinyPng api key {key}...");
-                    
                     Tinify.Key = key;
-                    await _policy.ExecuteAsync(Tinify.Validate);
                     
-                    _logger.Information("Api key is working!");
-                    _logger.Information($"Compression count this month with key {key}: {Tinify.CompressionCount}");
+                    await _networkPolicy.ExecuteAsync(Tinify.Validate);
+                    
+                    _logger.Information($"Using api key {key}. Compressions this month: {Tinify.CompressionCount}");
+                    
+                    return;
                 }
                 catch (Exception e)
                 {
-                    _logger.Error($"TinyPng api key {key} not valid => {e.Message}");
-
-                    if (!key.Equals(_apiKeys.Last())) 
-                        continue;
-                    
-                    _logger.Error("Could not initialize TinyPng because none of the provided api keys could be validated");
-                    throw new ApiAccessException(e.Message);
+                    _logger.Error($"TinyPng api key '{key}' could not be validated due to: {e.Message}");
                 }
             }
+            
+            throw new ApiAccessException("Could not initialize TinyPng because " +
+                "none of the provided api keys could be validated");
         }
         
         public async Task<OptimizeResult> Optimize(OptimizeRequest request)
         {
             try
             {
-                var source = Tinify.FromFile(request.FilePath);
+                await _networkPolicy
+                    .WrapAsync(_accountPolicy)
+                    .ExecuteAsync(() =>
+                {
+                    var source = Tinify.FromFile(request.FilePath);
+                    return source.ToFile(request.FilePath);
+                });
 
-                await _policy.ExecuteAsync(() => source.ToFile(request.FilePath));
-                
                 return new OptimizeResult(true, request.FilePath, request.Length);
             }
-            catch (AccountException e)
+            catch (ApiAccessException)
             {
-                // This happens if your API key is wrong or you´ve reached account limits
-
-                _apiKeys = _apiKeys.Where(x => x != Tinify.Key).ToArray();
-
-                if(!_apiKeys.Any())
-                    throw new ApiAccessException(e.Message);
-
-                string errorMessage = null;
-                
-                foreach (var key in _apiKeys)
-                {
-                    try
-                    {
-                        _logger.Information($"Validating TinyPng api key {key}...");
-                        
-                        Tinify.Key = key;
-                        await _policy.ExecuteAsync(Tinify.Validate);
-                        
-                        _logger.Information("Api key is working!");
-                        _logger.Information($"[{nameof(TinyPngOptimizer)}] " +
-                                        $"Compression count with key {key}: {Tinify.CompressionCount}");
-
-                        return await Optimize(request);
-                    }
-                    catch (Exception ex)
-                    {
-                        errorMessage = ex.Message;
-                        _logger.Error($"TinyPng api key {key} not valid => {e.Message}");
-                        
-                        if (key.Equals(_apiKeys.Last()))
-                        {
-                            Log.Error("Could not initialize TinyPng because none of the provided api keys could be validated");
-                        }
-                    }
-                }
-                
-                throw new ApiAccessException(errorMessage);
+                throw;
             }
             catch (Exception e)
             {
                 // Something else went wrong, unrelated to the Tinify API.
-                return new OptimizeResult(false, request.FilePath, errorMessage: e.Message);
+                return new OptimizeResult(false, request.FilePath, request.Length, e.Message);
             }
         }
     }

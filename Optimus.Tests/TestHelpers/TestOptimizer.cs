@@ -8,7 +8,12 @@ namespace Optimus.Tests.TestHelpers
     public class TestOptimizer : IOptimizer
     {
         private static readonly Random Random = new Random();
-        
+
+        public Task Validate()
+        {
+            return Task.FromResult(0);
+        }
+
         public async Task<OptimizeResult> Optimize(OptimizeRequest request)
         {
             await Task.Delay(10);

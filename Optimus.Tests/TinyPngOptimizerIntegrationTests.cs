@@ -21,6 +21,8 @@ namespace Optimus.Tests
         {
             base.BeforeEachTest();
 
+            Tinify.Key = null;
+
             var sourcePath = Path.Combine(Environment.CurrentDirectory, "Images");
             var targetPath = Path.Combine(Environment.CurrentDirectory, "TestImages");
             
@@ -41,64 +43,60 @@ namespace Optimus.Tests
             var targetPath = Path.Combine(Environment.CurrentDirectory, "TestImages");
             Directory.Delete(targetPath, true);
         }
-        
-        [Test]
-        public void Invalid_api_key_should_throw()
-        {
-            var optimizer = new TinyPngOptimizer(new []{"wrongKey"});
-            Should.Throw<ApiAccessException>(() => optimizer.Initialize());
-        }
 
         [Test]
-        public async Task Initialize_should_take_first_valid_apikey()
+        public async Task Should_optimize_if_any_key_is_valid()
         {
-            var optimizer = new TinyPngOptimizer(new []{"wrongKey", "wrongKey2", Key1});
-            await optimizer.Initialize();
+            var request = GetRequest("arandano.jpg");
+            var optimizer = new TinyPngOptimizer(new []{"bad1", "bad2", Key1});
+            var result = await optimizer.Optimize(request);
             
+            result.Success.ShouldBeTrue();
+            Tinify.Key.ShouldBe(Key1);
+            
+            optimizer = new TinyPngOptimizer(new []{"bad1", Key1, "bad2"});
+            result = await optimizer.Optimize(request);
+            
+            result.Success.ShouldBeTrue();
             Tinify.Key.ShouldBe(Key1);
         }
 
         [Test]
-        public async Task Next_apikey_should_be_taken_on_access_exception()
+        public void Optimize_should_throw_when_all_keys_invalid()
         {
-            var optimizer = new TinyPngOptimizer(new []{"wrongKey", "wrongKey2", "wrongKey3"});
-            var request = new OptimizeRequest(Path.Combine("TestImages", "arandano.jpg"));
+            var request = GetRequest("arandano.jpg");
+            var optimizer = new TinyPngOptimizer(new []{"bad1", "bad2", "bad3"});
 
             Should.Throw<ApiAccessException>(() => optimizer.Optimize(request));
-            Tinify.Key.ShouldBe("wrongKey3");
-            
-            optimizer = new TinyPngOptimizer(new []{"wrongKey"});
-            Should.Throw<ApiAccessException>(() => optimizer.Optimize(request));
-            Tinify.Key.ShouldBe("wrongKey");
-            
-            optimizer = new TinyPngOptimizer(new []{"wrongKey", "wrongKey2", Key1});
-            var result = await optimizer.Optimize(request);
-            result.Success.ShouldBeTrue();
+            Tinify.Key.ShouldBe("bad3");
         }
-        
+
         [Test]
         public async Task Non_image_should_fail()
         {
-            var optimizer = new TinyPngOptimizer(new []{Key1});
-            var request = new OptimizeRequest(Path.Combine("TestImages", "file.txt"));
-            var result = await optimizer.Optimize(request);
+            var result = await new TinyPngOptimizer(new []{Key1})
+                .Optimize(GetRequest("file.txt"));
             
             result.Success.ShouldBeFalse();
-            result.ErrorMessage.ShouldNotBeEmpty();
+            result.ErrorMessage.ShouldContain("HTTP 415/Unsupported media type");
         }
 
         [Test]
         public async Task Image_should_be_optimized()
         {
-            var optimizer = new TinyPngOptimizer(new []{Key1});
-            var request = new OptimizeRequest(Path.Combine("TestImages", "arandano.jpg"));
-            var result = await optimizer.Optimize(request);
+            var request = GetRequest("arandano.jpg");
+            var result = await new TinyPngOptimizer(new []{Key1})
+                .Optimize(request);
 
+            result.OriginalLength.ShouldBe(request.Length);
             result.Success.ShouldBeTrue();
             result.FilePath.ShouldBe(request.FilePath);
             result.Length.ShouldBeLessThan(request.Length);
             result.Length.ShouldNotBe(0);
             result.ErrorMessage.ShouldBeNull();
         }
+
+        private static OptimizeRequest GetRequest(string file)
+            => new OptimizeRequest(Path.Combine("TestImages", file));
     }
 }
