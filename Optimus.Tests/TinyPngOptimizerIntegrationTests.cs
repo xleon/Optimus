@@ -72,7 +72,7 @@ namespace Optimus.Tests
         }
 
         [Test]
-        public async Task Non_image_should_fail()
+        public async Task Optimize_non_image_file_should_fail()
         {
             var result = await new TinyPngOptimizer(new []{Key1})
                 .Optimize(GetRequest("file.txt"));
@@ -82,7 +82,7 @@ namespace Optimus.Tests
         }
 
         [Test]
-        public async Task Image_should_be_optimized()
+        public async Task Image_file_should_be_optimized()
         {
             var request = GetRequest("arandano.jpg");
             var result = await new TinyPngOptimizer(new []{Key1})
