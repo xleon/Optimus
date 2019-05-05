@@ -103,8 +103,8 @@ namespace Optimus.Tests
             var result = await new TinyPngOptimizer(new []{Key1})
                 .Optimize(request);
 
-            result.OriginalLength.ShouldBe(request.Length);
             result.Success.ShouldBeTrue();
+            result.OriginalLength.ShouldBe(request.Length);
             result.FilePath.ShouldBe(request.FilePath);
             result.Length.ShouldBeLessThan(request.Length);
             result.Length.ShouldNotBe(0);

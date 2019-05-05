@@ -1,13 +1,12 @@
 using System.IO;
 using NUnit.Framework;
 using Optimus.Model;
-using Optimus.Tests.TestHelpers;
 using Shouldly;
 
 namespace Optimus.Tests
 {
     [TestFixture]
-    public class ModelTests : BaseTest
+    public class ModelTests
     {
         [Test]
         public void Request_should_reference_existing_file()
