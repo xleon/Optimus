@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,22 +10,24 @@ namespace Optimus
 {
     public class GitMediaSearch : IMediaSearch
     {
-        public async Task<IEnumerable<string>> SearchImageFiles(
+        public async Task<IEnumerable<string>> SearchMedia(
             string path, 
-            string[] extensions,
-            string[] includeDirectories = null)
+            string[] extensions)
         {
-            var files = (await GetFilesFromGitLs(path)).ToList();
-
-            if (!files.Any())
-                return Enumerable.Empty<string>();
+            if(!Directory.Exists(path))
+                throw new DirectoryNotFoundException();
             
-            var filtered = files.Where(file => extensions.Contains(Path.GetExtension(file)));
-
-            if (includeDirectories != null && includeDirectories.Any())
-                filtered = filtered.Where(x => includeDirectories.Any(x.StartsWith));
-
-            return filtered;
+            if(extensions == null || !extensions.Any() || !extensions.All(x => x.StartsWith(".")))
+                throw new ArgumentException("Incorrect extensions: " +
+                    "At least one should be provided and it should start with '.'", 
+                    nameof(extensions));
+            
+            var files = (await GetFilesFromGitLs(path)).ToList();
+            
+            return files
+                .Where(file => extensions.Contains(
+                    Path.GetExtension(file), 
+                    StringComparer.OrdinalIgnoreCase));
         }
 
         private static async Task<IEnumerable<string>> GetFilesFromGitLs(string path)
@@ -35,7 +38,8 @@ namespace Optimus
                 powershell.AddScript(@"git ls-files");
 
                 var result = await powershell.InvokeAsync();
-                return result.Select(x => x.ToString());
+                
+                return result.Select(x => Path.Combine(path, x.ToString()));
             }
         }
     }

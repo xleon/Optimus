@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,40 +11,21 @@ namespace Optimus.Tests
     [TestFixture]
     public class GitMediaSearchTests : BaseTest
     {
-        private string _path;
-        private string[] _imageExtensions;
+        private readonly string[] _imageExtensions = {".jpg", ".png"};
 
-        [SetUp]
-        public override void BeforeEachTest()
-        {
-            base.BeforeEachTest();
-
-            _path = "";
-            _imageExtensions = new[] {".jpg", ".png"};
-        }
-
-        [TearDown]
-        public override void AfterEachTest()
-        {
-            base.AfterEachTest();
-            
-//            var targetPath = Path.Combine(Environment.CurrentDirectory, "TestImages");
-//            Directory.Delete(targetPath, true);
-        }
-        
         [Test]
-        [TestCase(".jpg")]
-        [TestCase(".png")]
-        [TestCase(".JPG")]
-        [TestCase(".PNG")]
-        public async Task Files_should_match_passed_extension(string extension)
+        [TestCase(".jpg", 4)]
+        [TestCase(".png", 1)]
+        [TestCase(".JPG", 4)]
+        [TestCase(".PNG", 1)]
+        public async Task Files_should_match_passed_extension(string extension, int count)
         {
             var extensions = new[] {extension};
             var search = (await new GitMediaSearch()
-                .SearchImageFiles(_path, extensions))
+                .SearchMedia(SuiteConfig.RepoPath, extensions))
                 .ToList();
             
-            search.Count.ShouldBeGreaterThan(0);
+            search.Count.ShouldBe(count);
             search.ShouldAllBe(file => Path.HasExtension(extension));
         }
 
@@ -51,7 +33,7 @@ namespace Optimus.Tests
         public async Task All_images_should_be_listed()
         {
             var search = await new GitMediaSearch()
-                .SearchImageFiles(_path, _imageExtensions);
+                .SearchMedia(SuiteConfig.RepoPath, _imageExtensions);
             
             search.Count().ShouldBe(5);
         }
@@ -60,7 +42,7 @@ namespace Optimus.Tests
         public async Task Search_points_to_existing_files()
         {
             var search = (await new GitMediaSearch()
-                .SearchImageFiles(_path, _imageExtensions))
+                .SearchMedia(SuiteConfig.RepoPath, _imageExtensions))
                 .ToList();
             
             search.Count.ShouldBeGreaterThan(0);
@@ -68,13 +50,42 @@ namespace Optimus.Tests
         }
 
         [Test]
-        public async Task Search_can_be_filtered_by_includeDirectories()
+        public async Task Search_in_directory_without_images_should_return_empty_enumerable()
         {
-            var includeDirectories = new[] {"Dir1", "Dir2"};
+            var path = Path.Combine(SuiteConfig.RepoPath, "Dir4");
             var search = await new GitMediaSearch()
-                .SearchImageFiles(_path, _imageExtensions, includeDirectories);
+                    .SearchMedia(path, _imageExtensions);
             
-            search.Count().ShouldBe(4);
+            search.ShouldBeEmpty();
+        }
+
+        [Test]
+        public void Search_should_throw_if_path_does_not_exist()
+        {
+            var path = Path.Combine(SuiteConfig.RepoPath, "IdontExist");
+            Should.Throw<DirectoryNotFoundException>(
+                () => new GitMediaSearch().SearchMedia(path, _imageExtensions));
+        }
+
+        [Test]
+        public void Search_should_throw_if_no_extensions_passed()
+        {
+            var media = new GitMediaSearch();
+            
+            Should.Throw<ArgumentException>(
+                () => media.SearchMedia(SuiteConfig.RepoPath, null));
+            
+            Should.Throw<ArgumentException>(
+                () => media.SearchMedia(SuiteConfig.RepoPath, new string[]{}));
+        }
+
+        [Test]
+        public void Extensions_should_start_with_dot()
+        {
+            var media = new GitMediaSearch();
+            
+            Should.Throw<ArgumentException>(
+                () => media.SearchMedia(SuiteConfig.RepoPath, new []{"jpg"}));
         }
     }
 }

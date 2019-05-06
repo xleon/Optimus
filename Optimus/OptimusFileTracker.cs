@@ -34,10 +34,9 @@ namespace Optimus
             var config = OptimusConfiguration.GetOrCreate(_directoryPath);
             var trackedFiles = ReadTrackedFiles().ToList();
             var trackedCount = trackedFiles.Count;
-            var directoryFiles = (await _mediaSearch.SearchImageFiles(
+            var directoryFiles = (await _mediaSearch.SearchMedia(
                     _directoryPath,
-                    config.FileExtensions,
-                    config.IncludedDirectories))
+                    config.FileExtensions))
                 .ToList();
 
             if (trackedFiles.Any() && directoryFiles.Any())

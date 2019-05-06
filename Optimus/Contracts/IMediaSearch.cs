@@ -5,9 +5,8 @@ namespace Optimus.Contracts
 {
     public interface IMediaSearch
     {
-        Task<IEnumerable<string>> SearchImageFiles(
+        Task<IEnumerable<string>> SearchMedia(
             string path, 
-            string[] extensions,
-            string[] includeDirectories = null);
+            string[] extensions);
     }
 }
