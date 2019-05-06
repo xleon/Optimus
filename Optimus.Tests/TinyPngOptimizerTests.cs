@@ -23,8 +23,8 @@ namespace Optimus.Tests
 
             Tinify.Key = null;
 
-            var sourcePath = Path.Combine(Environment.CurrentDirectory, "Images");
-            var targetPath = Path.Combine(Environment.CurrentDirectory, "TestImages");
+            const string sourcePath = "Images";
+            const string targetPath = "TestImages";
             
             Directory.CreateDirectory(targetPath);
 
@@ -39,9 +39,8 @@ namespace Optimus.Tests
         public override void AfterEachTest()
         {
             base.AfterEachTest();
-            
-            var targetPath = Path.Combine(Environment.CurrentDirectory, "TestImages");
-            Directory.Delete(targetPath, true);
+
+            Directory.Delete("TestImages", true);
         }
         
         [Test]
