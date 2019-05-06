@@ -11,18 +11,18 @@ namespace Optimus
     public class GitMediaSearch : IMediaSearch
     {
         public async Task<IEnumerable<string>> SearchMedia(
-            string path, 
+            string directory, 
             string[] extensions)
         {
-            if(!Directory.Exists(path))
+            if(!Directory.Exists(directory))
                 throw new DirectoryNotFoundException();
             
             if(extensions == null || !extensions.Any() || !extensions.All(x => x.StartsWith(".")))
                 throw new ArgumentException("Incorrect extensions: " +
-                    "At least one should be provided and it should start with '.'", 
+                    "At least one extension should be provided and it should start with '.'", 
                     nameof(extensions));
             
-            var files = (await GetFilesFromGitLs(path)).ToList();
+            var files = await GetFilesFromGitLs(directory);
             
             return files
                 .Where(file => extensions.Contains(

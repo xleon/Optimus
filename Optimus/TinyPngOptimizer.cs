@@ -34,7 +34,7 @@ namespace Optimus
             if (apiKeys.Any(key => string.IsNullOrEmpty(key.Trim())))
             {
                 throw new ArgumentException(
-                    "One more more keys are empty", 
+                    "One or more keys are empty", 
                     nameof(apiKeys));
             }
             

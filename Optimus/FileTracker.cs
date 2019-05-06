@@ -37,6 +37,21 @@ namespace Optimus
             return null;
         }
 
+        public void Track(OptimusFile optimusFile)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<OptimusFile>> SetAllFilesAsTracked()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Delete()
+        {
+            // throw new NotImplementedException();
+        }
+
 //        public async Task<(IEnumerable<string> trackedFiles, IEnumerable<string> untrackedfiles)> GetFiles()
 //        {
 //            var (config, created) = OptimusConfiguration.GetOrCreate(_directoryPath);
@@ -67,9 +82,5 @@ namespace Optimus
 //            return (trackedFiles, untrackedFiles);
 //        }
 
-        public void Track(string filePath)
-        {
-            // File.AppendAllLines(_trackerFile, new []{file});
-        }
     }
 }
