@@ -31,7 +31,7 @@ namespace Optimus
 
         public async Task<(IEnumerable<string> trackedFiles, IEnumerable<string> untrackedfiles)> GetFiles()
         {
-            var config = OptimusConfiguration.GetOrCreate(_directoryPath);
+            var (config, created) = OptimusConfiguration.GetOrCreate(_directoryPath);
             var trackedFiles = ReadTrackedFiles().ToList();
             var trackedCount = trackedFiles.Count;
             var directoryFiles = (await _mediaSearch.SearchMedia(

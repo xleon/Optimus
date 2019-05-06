@@ -8,44 +8,41 @@ namespace Optimus.Model
     {
         public string[] TinyPngApiKeys { get; set; }
         public string[] FileExtensions { get; set; }
-        public string[] IncludedDirectories { get; set; }
 
         private static readonly string FileName = $"{nameof(OptimusConfiguration)}.json";
 
-        public static OptimusConfiguration GetOrCreate(string path)
+        public static (OptimusConfiguration configuration, bool created) GetOrCreate(string directoryPath)
         {
-            var configurationPath = Path.Combine(path, FileName);
+            var configurationPath = Path.Combine(directoryPath, FileName);
 
             if (!File.Exists(configurationPath))
             {
                 var configuration = new OptimusConfiguration
                 {
                     TinyPngApiKeys = new string[]{},
-                    IncludedDirectories = new string[]{},
                     FileExtensions = new []{".jpg", ".jpeg", ".png"}
                 };
                 
-                configuration.SaveTo(path);
+                configuration.Save(directoryPath);
 
-                return configuration;
+                return (configuration, true);
             }
             
-            return JsonFile.Read<OptimusConfiguration>(configurationPath);
-        }
-
-        public void SaveTo(string path)
-        {
-            var configurationPath = Path.Combine(path, FileName);
-            JsonFile.Write(this, configurationPath);
-        }
-
-        private void SanityCheck()
-        {
-            if (FileExtensions.IsNullOrEmpty())
-                throw new OptimusConfigurationException($"{nameof(FileExtensions)} has no values");
+            var savedConfiguration = JsonFile.Read<OptimusConfiguration>(configurationPath);
             
-            if (TinyPngApiKeys.IsNullOrEmpty())
-                throw new OptimusConfigurationException($"{nameof(TinyPngApiKeys)} has no values");
+            if (savedConfiguration.FileExtensions.IsNullOrEmpty())
+                throw new OptimusConfigurationException($"{nameof(FileExtensions)} missing");
+            
+            if (savedConfiguration.TinyPngApiKeys.IsNullOrEmpty())
+                throw new OptimusConfigurationException($"{nameof(TinyPngApiKeys)} missing");
+
+            return (savedConfiguration, false);
         }
+
+        public void Save(string directoryPath) 
+            => JsonFile.Write(this, Path.Combine(directoryPath, FileName));
+
+        public static void Delete(string directoryPath)
+            => File.Delete(Path.Combine(directoryPath, FileName));
     }
 }

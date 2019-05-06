@@ -7,19 +7,19 @@ namespace Optimus.Tests
     [SetUpFixture]
     public class SuiteConfig
     {
-        public const string RepoPath = "OptimusCompanionRepo";
+        public const string Repo = "OptimusCompanionRepo";
         
         [OneTimeSetUp]
         public void BeforeTestSuite()
         {
-            var repoZip = Path.Combine("TestHelpers", "OptimusCompanionRepo.zip");
+            var repoZip = Path.Combine("TestHelpers", $"{Repo}.zip");
             ZipFile.ExtractToDirectory(repoZip, ".");
         }
 
         [OneTimeTearDown]
         public void AfterTestSuite()
         {
-            Directory.Delete(RepoPath, true);
+            Directory.Delete(Repo, true);
         }
     }
 }

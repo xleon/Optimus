@@ -22,7 +22,7 @@ namespace Optimus.Tests
         {
             var extensions = new[] {extension};
             var search = (await new GitMediaSearch()
-                .SearchMedia(SuiteConfig.RepoPath, extensions))
+                .SearchMedia(SuiteConfig.Repo, extensions))
                 .ToList();
             
             search.Count.ShouldBe(count);
@@ -33,7 +33,7 @@ namespace Optimus.Tests
         public async Task All_images_should_be_listed()
         {
             var search = await new GitMediaSearch()
-                .SearchMedia(SuiteConfig.RepoPath, _imageExtensions);
+                .SearchMedia(SuiteConfig.Repo, _imageExtensions);
             
             search.Count().ShouldBe(5);
         }
@@ -42,7 +42,7 @@ namespace Optimus.Tests
         public async Task Search_points_to_existing_files()
         {
             var search = (await new GitMediaSearch()
-                .SearchMedia(SuiteConfig.RepoPath, _imageExtensions))
+                .SearchMedia(SuiteConfig.Repo, _imageExtensions))
                 .ToList();
             
             search.Count.ShouldBeGreaterThan(0);
@@ -52,7 +52,7 @@ namespace Optimus.Tests
         [Test]
         public async Task Search_in_directory_without_images_should_return_empty_enumerable()
         {
-            var path = Path.Combine(SuiteConfig.RepoPath, "Dir4");
+            var path = Path.Combine(SuiteConfig.Repo, "Dir4");
             var search = await new GitMediaSearch()
                     .SearchMedia(path, _imageExtensions);
             
@@ -62,7 +62,7 @@ namespace Optimus.Tests
         [Test]
         public void Search_should_throw_if_path_does_not_exist()
         {
-            var path = Path.Combine(SuiteConfig.RepoPath, "IdontExist");
+            var path = Path.Combine(SuiteConfig.Repo, "IdontExist");
             Should.Throw<DirectoryNotFoundException>(
                 () => new GitMediaSearch().SearchMedia(path, _imageExtensions));
         }
@@ -73,10 +73,10 @@ namespace Optimus.Tests
             var media = new GitMediaSearch();
             
             Should.Throw<ArgumentException>(
-                () => media.SearchMedia(SuiteConfig.RepoPath, null));
+                () => media.SearchMedia(SuiteConfig.Repo, null));
             
             Should.Throw<ArgumentException>(
-                () => media.SearchMedia(SuiteConfig.RepoPath, new string[]{}));
+                () => media.SearchMedia(SuiteConfig.Repo, new string[]{}));
         }
 
         [Test]
@@ -85,7 +85,7 @@ namespace Optimus.Tests
             var media = new GitMediaSearch();
             
             Should.Throw<ArgumentException>(
-                () => media.SearchMedia(SuiteConfig.RepoPath, new []{"jpg"}));
+                () => media.SearchMedia(SuiteConfig.Repo, new []{"jpg"}));
         }
     }
 }
