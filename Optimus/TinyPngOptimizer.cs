@@ -11,7 +11,7 @@ using Serilog;
 using TinifyAPI;
 using Exception = System.Exception; // Tinify library has a class called "Exception" WTF
 
-namespace Optimus.Optimizers
+namespace Optimus
 {
     public class TinyPngOptimizer : IOptimizer
     {
@@ -76,7 +76,7 @@ namespace Optimus.Optimizers
                 }
             }
             
-            throw new ApiAccessException("Could not initialize TinyPng because " +
+            throw new OptimusApiAccessException("Could not initialize TinyPng because " +
                 "none of the provided api keys could be validated");
         }
         
@@ -94,7 +94,7 @@ namespace Optimus.Optimizers
 
                 return new OptimizeResult(true, request.FilePath, request.Length);
             }
-            catch (ApiAccessException)
+            catch (OptimusApiAccessException)
             {
                 throw;
             }

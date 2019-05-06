@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using Optimus.Exceptions;
 using Optimus.Model;
-using Optimus.Optimizers;
 using Optimus.Tests.TestHelpers;
 using Shouldly;
 using TinifyAPI;
@@ -79,7 +78,7 @@ namespace Optimus.Tests
             var request = GetRequest("arandano.jpg");
             var optimizer = new TinyPngOptimizer(new []{"bad1", "bad2", "bad3"});
 
-            Should.Throw<ApiAccessException>(() => optimizer.Optimize(request));
+            Should.Throw<OptimusApiAccessException>(() => optimizer.Optimize(request));
             Tinify.Key.ShouldBe("bad3");
         }
 
