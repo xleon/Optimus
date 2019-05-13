@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using Optimus.Contracts;
 using Optimus.Tests.TestHelpers;
 using Shouldly;
 
@@ -12,16 +13,17 @@ namespace Optimus.Tests
     public class GitMediaSearchTests : BaseTest
     {
         private readonly string[] _imageExtensions = {".jpg", ".png"};
-
+        private readonly IMediaSearch _mediaSearch = new GitMediaSearch();
+        
         [Test]
         [TestCase(".jpg", 4)]
         [TestCase(".png", 1)]
         [TestCase(".JPG", 4)]
         [TestCase(".PNG", 1)]
-        public async Task Files_should_match_passed_extension(string extension, int count)
+        public async Task Result_should_match_passed_extension(string extension, int count)
         {
             var extensions = new[] {extension};
-            var search = (await new GitMediaSearch()
+            var search = (await _mediaSearch
                 .SearchMedia(SuiteConfig.Repo, extensions))
                 .ToList();
             
@@ -32,29 +34,27 @@ namespace Optimus.Tests
         [Test]
         public async Task All_images_should_be_listed()
         {
-            var search = await new GitMediaSearch()
-                .SearchMedia(SuiteConfig.Repo, _imageExtensions);
-            
+            var search = await _mediaSearch.SearchMedia(SuiteConfig.Repo, _imageExtensions);
             search.Count().ShouldBe(5);
         }
 
         [Test]
-        public async Task Search_points_to_existing_files()
+        public async Task Results_point_to_existing_files()
         {
-            var search = (await new GitMediaSearch()
+            var search = (await _mediaSearch
                 .SearchMedia(SuiteConfig.Repo, _imageExtensions))
                 .ToList();
             
             search.Count.ShouldBeGreaterThan(0);
-            search.ShouldAllBe(path => File.Exists(path));
+            search.ShouldAllBe(path => 
+                File.Exists(Path.Combine(SuiteConfig.Repo, path)));
         }
 
         [Test]
         public async Task Search_in_directory_without_images_should_return_empty_enumerable()
         {
             var path = Path.Combine(SuiteConfig.Repo, "Dir4");
-            var search = await new GitMediaSearch()
-                    .SearchMedia(path, _imageExtensions);
+            var search = await _mediaSearch.SearchMedia(path, _imageExtensions);
             
             search.ShouldBeEmpty();
         }
@@ -70,22 +70,18 @@ namespace Optimus.Tests
         [Test]
         public void Search_should_throw_if_no_extensions_passed()
         {
-            var media = new GitMediaSearch();
+            Should.Throw<ArgumentException>(
+                () => _mediaSearch.SearchMedia(SuiteConfig.Repo, null));
             
             Should.Throw<ArgumentException>(
-                () => media.SearchMedia(SuiteConfig.Repo, null));
-            
-            Should.Throw<ArgumentException>(
-                () => media.SearchMedia(SuiteConfig.Repo, new string[]{}));
+                () => _mediaSearch.SearchMedia(SuiteConfig.Repo, new string[]{}));
         }
 
         [Test]
         public void Extensions_should_start_with_dot()
         {
-            var media = new GitMediaSearch();
-            
             Should.Throw<ArgumentException>(
-                () => media.SearchMedia(SuiteConfig.Repo, new []{"jpg"}));
+                () => _mediaSearch.SearchMedia(SuiteConfig.Repo, new []{"jpg"}));
         }
     }
 }

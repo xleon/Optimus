@@ -6,9 +6,9 @@ namespace Optimus.Contracts
 {
     public interface IFileTracker
     {
-        Task<IEnumerable<OptimusFile>> GetFiles();
-        void Track(OptimusFile optimusFile);
-        Task<IEnumerable<OptimusFile>> SetAllFilesAsTracked();
-        void Delete();
+        Task<IEnumerable<OptimusFileInfo>> Report();
+        string Track(string relativePath);
+        Task<IEnumerable<OptimusFileInfo>> SetAllFilesAsTracked();
+        void Untrack();
     }
 }

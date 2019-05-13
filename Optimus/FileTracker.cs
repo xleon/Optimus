@@ -1,18 +1,22 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Optimus.Contracts;
+using Optimus.Helpers;
 using Optimus.Model;
 
 namespace Optimus
 {
     public class FileTracker : IFileTracker
     {
-        private readonly string _fileName = $"{nameof(FileTracker)}.txt";
+        private const string FileName = "OptimusFileTracker.txt";
         private readonly string _trackerFile;
         private readonly string _directoryPath;
         private readonly IMediaSearch _mediaSearch;
+        private readonly string[] _searchExtensions;
+        private List<OptimusFileInfo> _currentReport;
 
         public FileTracker(string directoryPath, IMediaSearch mediaSearch)
         {
@@ -29,58 +33,87 @@ namespace Optimus
                 $"{nameof(IMediaSearch)} should be provided", 
                 nameof(mediaSearch));
             
-            _trackerFile = Path.Combine(directoryPath, _fileName);
+            _trackerFile = Path.Combine(directoryPath, FileName);
+            
+            _searchExtensions = OptimusConfiguration
+                .GetOrCreate(_directoryPath)
+                .configuration
+                .FileExtensions;
         }
 
-        public async Task<IEnumerable<OptimusFile>> GetFiles()
+        public async Task<IEnumerable<OptimusFileInfo>> Report()
         {
-            return null;
+            var trackedFileInfos = File.Exists(_trackerFile) 
+                ? File
+                    .ReadAllLines(_trackerFile)
+                    .Select(ReadLine)
+                    .ToList()
+                : new List<OptimusFileInfo>();
+
+            var trackedPaths = trackedFileInfos.Select(x => x.RelativePath);
+            
+            _currentReport = (await _mediaSearch.SearchMedia(_directoryPath, _searchExtensions))
+                .Select(path => path.NormalizeSeparators())
+                .Select(path =>
+                {
+                    var tracked = trackedPaths.Contains(path, StringComparer.OrdinalIgnoreCase);
+                    return new OptimusFileInfo(path, tracked);
+                })
+                .ToList();
+
+            // if any tracked files have been deleted, update tracker file now
+            if (_currentReport.Count(x => x.Tracked) < trackedFileInfos.Count)
+            {
+                var lines = _currentReport
+                    .Where(x => x.Tracked)
+                    .Select(CreateLine);
+                
+                File.WriteAllLines(_trackerFile, lines);
+            }
+
+            return _currentReport;
         }
 
-        public void Track(OptimusFile optimusFile)
+        private static OptimusFileInfo ReadLine(string line)
+        {
+            return new OptimusFileInfo(line, true);
+        }
+
+        private static string CreateLine(OptimusFileInfo optimusFileInfo)
+        {
+            return optimusFileInfo.RelativePath;
+        }
+
+        public string Track(string relativePath)
+        {
+            if(_currentReport == null)
+                throw new InvalidOperationException(
+                    $"Please call {nameof(Report)}() before tracking files");
+
+            var normalizedPath = relativePath.NormalizeSeparators();
+
+            if(_currentReport.All(x => x.RelativePath != normalizedPath))
+                throw new ArgumentException(
+                    "Cannot track a file not included in the Report", nameof(relativePath));
+
+            var line = relativePath.NormalizeSeparators();
+            // TODO format line with file timestamp
+            // TODO check for duplicates
+            File.AppendAllLines(_trackerFile, new []{line});
+            return line;
+        }
+
+        public Task<IEnumerable<OptimusFileInfo>> SetAllFilesAsTracked()
         {
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<OptimusFile>> SetAllFilesAsTracked()
+        public void Untrack()
         {
-            throw new NotImplementedException();
+            _currentReport = null;
+            
+            if(File.Exists(_trackerFile))
+                File.Delete(_trackerFile);
         }
-
-        public void Delete()
-        {
-            // throw new NotImplementedException();
-        }
-
-//        public async Task<(IEnumerable<string> trackedFiles, IEnumerable<string> untrackedfiles)> GetFiles()
-//        {
-//            var (config, created) = OptimusConfiguration.GetOrCreate(_directoryPath);
-//            var trackedFiles = ReadTrackedFiles().ToList();
-//            var trackedCount = trackedFiles.Count;
-//            var directoryFiles = (await _mediaSearch.SearchMedia(
-//                    _directoryPath,
-//                    config.FileExtensions))
-//                .ToList();
-//
-//            if (trackedFiles.Any() && directoryFiles.Any())
-//            {
-//                trackedFiles = trackedFiles
-//                    .Where(directoryFiles.Contains)
-//                    .ToList();
-//
-//                if (trackedFiles.Count != trackedCount)
-//                {
-//                    // if we removed any of the tracked files because they don´t exist any more in the 
-//                    // file system, overwrite the tracker file to reflect changes
-//                    File.WriteAllLines(_trackerFile, trackedFiles);
-//                }
-//            }
-//
-//            var untrackedFiles = directoryFiles
-//                .Where(x => !trackedFiles.Contains(x));
-//
-//            return (trackedFiles, untrackedFiles);
-//        }
-
     }
 }

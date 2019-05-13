@@ -39,7 +39,7 @@ namespace Optimus
 
                 var result = await powershell.InvokeAsync();
                 
-                return result.Select(x => Path.Combine(path, x.ToString()));
+                return result.Select(x => x.ToString());
             }
         }
     }
