@@ -14,6 +14,7 @@ namespace Optimus.Tests
     public class TinyPngOptimizerTests : BaseTest
     {
         private const string Key1 = "EqMJnscp5i6PXT2bLuV36ktbvCD11lCi";
+        private const string TargetPath = "TestImages";
         
         [SetUp]
         public override void BeforeEachTest()
@@ -23,13 +24,12 @@ namespace Optimus.Tests
             Tinify.Key = null;
 
             const string sourcePath = "Images";
-            const string targetPath = "TestImages";
             
-            Directory.CreateDirectory(targetPath);
+            Directory.CreateDirectory(TargetPath);
 
             foreach (var path in Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories))
             {
-                var newPath = path.Replace(sourcePath, targetPath);
+                var newPath = path.Replace(sourcePath, TargetPath);
                 File.Copy(path, newPath, true);
             }
         }
@@ -39,7 +39,7 @@ namespace Optimus.Tests
         {
             base.AfterEachTest();
 
-            Directory.Delete("TestImages", true);
+            Directory.Delete(TargetPath, true);
         }
         
         [Test]

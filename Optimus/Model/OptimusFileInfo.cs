@@ -3,13 +3,13 @@ using Optimus.Helpers;
 
 namespace Optimus.Model
 {
-    public struct OptimusFileInfo
+    public class OptimusFileInfo
     {
         public bool Tracked { get; }
-        public DateTime? OptimizedAt { get; }
+        public DateTimeOffset? OptimizedAt { get; }
         public string RelativePath { get; }
         
-        internal OptimusFileInfo(string relativePath, bool tracked = false, DateTime? optimizedAt = null)
+        internal OptimusFileInfo(string relativePath, bool tracked = false, DateTimeOffset? optimizedAt = null)
         {
             RelativePath = relativePath.NormalizeSeparators();
             Tracked = tracked;

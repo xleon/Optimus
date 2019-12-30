@@ -9,7 +9,7 @@ using Polly;
 using Polly.Retry;
 using Serilog;
 using TinifyAPI;
-using Exception = System.Exception; // Tinify library has a class called "Exception" WTF
+using Exception = System.Exception; // Tinify library has a class called "Exception". WTF?
 
 namespace Optimus
 {

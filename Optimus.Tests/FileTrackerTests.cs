@@ -73,18 +73,20 @@ namespace Optimus.Tests
         public async Task Files_can_be_tracked()
         {
             await _tracker.Report();
-            _paths.ToList().ForEach(x => _tracker.Track(x));
+            
+            _paths.ToList().ForEach(async x => await _tracker.Track(x));
 
             var report = (await _tracker.Report()).ToList();
             
-            report.ShouldAllBe(x => x.Tracked);
             report.Count.ShouldBe(_paths.Length);
+            report.ShouldAllBe(x => x.Tracked);
+            report.ShouldAllBe(x => x.OptimizedAt != null);
         }
 
         [Test]
-        public void Report_should_be_generated_before_tracking_files()
+        public async Task Report_should_be_generated_before_tracking_files()
         {
-            Should.Throw<InvalidOperationException>(() =>
+            await Should.ThrowAsync<InvalidOperationException>(() =>
                 _tracker.Track(Path.Combine("Dir3", "centeno.jpg")));
         }
         
@@ -92,14 +94,30 @@ namespace Optimus.Tests
         public async Task Should_not_track_files_out_of_report()
         {
             await _tracker.Report();
-            Should.Throw<ArgumentException>(() =>
+            await Should.ThrowAsync<InvalidOperationException>(() =>
                 _tracker.Track(Path.Combine("bin", "notInMediaSearch.jpg")));
         }
 
         [Test]
         public async Task File_track_should_not_be_duplicated()
         {
+            var path = Path.Combine("Dir3", "centeno.jpg");
+            
             await _tracker.Report();
+            await _tracker.Track(path);
+            await Task.Delay(100);
+            await _tracker.Track(path);
+
+            var report = await _tracker.Report();
+            
+            report
+                .Count(x => x.RelativePath == path)
+                .ShouldBe(1);
+        }
+
+        [Test]
+        public void File_track_can_be_updated()
+        {
             throw new NotImplementedException();
         }
 
@@ -110,18 +128,19 @@ namespace Optimus.Tests
         }
 
         [Test]
-        public async Task Should_untrack_removed_files()
+        public async Task Should_untrack_removed_files_from_file_system()
         {
             throw new NotImplementedException();
         }
 
         [Test]
-        public async Task Can_set_all_files_as_tracked()
+        public async Task Can_assume_all_files_as_tracked()
         {
-            var fileInfos = (await _tracker.SetAllFilesAsTracked()).ToList();
+            var fileInfos = (await _tracker.AsumeAllFilesAlreadyTracked()).ToList();
 
             fileInfos.Count.ShouldBe(_paths.Length);
             fileInfos.ShouldAllBe(x => x.Tracked);
+            fileInfos.ShouldAllBe(x => x.OptimizedAt != null);
         }
     }
 }

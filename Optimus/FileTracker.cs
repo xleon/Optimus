@@ -12,6 +12,8 @@ namespace Optimus
     public class FileTracker : IFileTracker
     {
         private const string FileName = "OptimusFileTracker.txt";
+        private const string DateTimeOffsetFormatString = "yyyy-MM-ddTHH:mm:sszzz";
+        
         private readonly string _trackerFile;
         private readonly string _directoryPath;
         private readonly IMediaSearch _mediaSearch;
@@ -49,15 +51,16 @@ namespace Optimus
                     .Select(ReadLine)
                     .ToList()
                 : new List<OptimusFileInfo>();
-
-            var trackedPaths = trackedFileInfos.Select(x => x.RelativePath);
             
             _currentReport = (await _mediaSearch.SearchMedia(_directoryPath, _searchExtensions))
                 .Select(path => path.NormalizeSeparators())
                 .Select(path =>
                 {
-                    var tracked = trackedPaths.Contains(path, StringComparer.OrdinalIgnoreCase);
-                    return new OptimusFileInfo(path, tracked);
+                    var tracked = trackedFileInfos
+                        .FirstOrDefault(x => x.RelativePath
+                            .Equals(path, StringComparison.OrdinalIgnoreCase));
+
+                    return tracked ?? new OptimusFileInfo(path);
                 })
                 .ToList();
 
@@ -68,7 +71,7 @@ namespace Optimus
                     .Where(x => x.Tracked)
                     .Select(CreateLine);
                 
-                File.WriteAllLines(_trackerFile, lines);
+                await File.WriteAllLinesAsync(_trackerFile, lines);
             }
 
             return _currentReport;
@@ -76,15 +79,23 @@ namespace Optimus
 
         private static OptimusFileInfo ReadLine(string line)
         {
-            return new OptimusFileInfo(line, true);
+            var parts = line.Substring(1).Split("] ");
+            var optimizedAt = DateTimeOffset.Parse(parts[0]);
+            var path = parts[1];
+            
+            return new OptimusFileInfo(path, true, optimizedAt);
         }
-
+        
         private static string CreateLine(OptimusFileInfo optimusFileInfo)
         {
-            return optimusFileInfo.RelativePath;
+            if(optimusFileInfo.OptimizedAt == null)
+                throw new InvalidDataException($"{nameof(optimusFileInfo.OptimizedAt)} property is missing");
+            
+            var optimizedAt = optimusFileInfo.OptimizedAt.Value.ToString(DateTimeOffsetFormatString);
+            return $"[{optimizedAt}] {optimusFileInfo.RelativePath}";
         }
 
-        public string Track(string relativePath)
+        public async Task<OptimusFileInfo> Track(string relativePath)
         {
             if(_currentReport == null)
                 throw new InvalidOperationException(
@@ -93,19 +104,29 @@ namespace Optimus
             var normalizedPath = relativePath.NormalizeSeparators();
 
             if(_currentReport.All(x => x.RelativePath != normalizedPath))
-                throw new ArgumentException(
-                    "Cannot track a file not included in the Report", nameof(relativePath));
+                throw new InvalidOperationException(
+                    $"Cannot track a file that is not included in the report: {relativePath}");
 
-            var line = relativePath.NormalizeSeparators();
-            // TODO format line with file timestamp
-            // TODO check for duplicates
-            File.AppendAllLines(_trackerFile, new []{line});
-            return line;
+            var fileInfo = new OptimusFileInfo(normalizedPath, true, DateTimeOffset.UtcNow);
+            var line = CreateLine(fileInfo);
+      
+            await File.AppendAllLinesAsync(_trackerFile, new []{line});
+            
+            return fileInfo;
         }
 
-        public Task<IEnumerable<OptimusFileInfo>> SetAllFilesAsTracked()
+        public async Task<IEnumerable<OptimusFileInfo>> AsumeAllFilesAlreadyTracked()
         {
-            throw new NotImplementedException();
+            var report = _currentReport ?? await Report();
+            
+            var untracked = report
+                .Where(x => !x.Tracked)
+                .Select(x => new OptimusFileInfo(x.RelativePath, true, DateTimeOffset.UtcNow))
+                .ToList();
+            
+            await File.WriteAllLinesAsync(_trackerFile, untracked.Select(CreateLine));
+            
+            return untracked;
         }
 
         public void Untrack()
