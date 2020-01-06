@@ -8,7 +8,7 @@ using Shouldly;
 namespace Optimus.Tests
 {
     [TestFixture]
-    public class SimpleFileTrackerTests
+    public class OptimusFileTrackerTests
     {
         private OptimusFileTracker _tracker;
         
