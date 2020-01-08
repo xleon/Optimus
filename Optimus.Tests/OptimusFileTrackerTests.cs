@@ -53,7 +53,18 @@ namespace Optimus.Tests
         [Test]
         public async Task Track_should_update_lastWriteTimeUtc_when_file_already_tracked()
         {
-            throw new NotImplementedException();
+            var file = Path.Combine(SuiteConfig.Repo, "Dir1/avellana.jpg");
+            var newFile = Path.Combine(SuiteConfig.Repo, "copy.jpg");
+            File.Copy(file, newFile);
+
+            var info = await _tracker.Track("copy.jpg");
+
+            File.SetLastWriteTimeUtc(newFile, DateTime.UtcNow);
+
+            var result = await _tracker.Track("copy.jpg");
+            
+            result.Updated.ShouldBeTrue();
+            result.LastWriteTimeUtc.ShouldNotBe(info.LastWriteTimeUtc);
         }
 
         [Test]
@@ -75,9 +86,10 @@ namespace Optimus.Tests
             
             File.WriteAllLines(trackerFile, new []
             {
-                "[2020-01-01] Dir1/fake.png",
-                "[2020-01-01] Dir1/avellana.jpg"
+                "[2020-01-01] Dir1/fake.png"
             });
+
+            await _tracker.Track("Dir1/avellana.jpg");
 
             await _tracker.UntrackRemovedAndChangedFiles();
             
