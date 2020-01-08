@@ -24,9 +24,9 @@ namespace Optimus.Tests
         }
 
         [Test]
-        public void Track_should_throw_if_files_does_not_exists()
+        public async Task Track_should_throw_if_files_does_not_exists()
         {
-            Should.ThrowAsync<ArgumentException>(() => _tracker.Track("fake.jpg"));
+            await Should.ThrowAsync<FileNotFoundException>(() => _tracker.Track("fake.jpg"));
         }
         
         [Test]

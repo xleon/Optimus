@@ -49,9 +49,9 @@ namespace Optimus
             var file = new FileInfo(absolutePath);
             
             if(!file.Exists)
-                throw new ArgumentException(
-                    $"The provided path does not point to an existing file: '{absolutePath}'", 
-                    nameof(relativePath));
+                throw new FileNotFoundException(
+                    $"The provided path does not point to an existing file", 
+                    absolutePath);
             
             var trackInfos = (await GetTrackInfos())
                 .ToList();

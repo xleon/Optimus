@@ -53,7 +53,7 @@ namespace Optimus.Tests
         [Test]
         public async Task Search_in_directory_without_images_should_return_empty_enumerable()
         {
-            var path = Path.Combine(SuiteConfig.Repo, "Dir4");
+            var path = Path.Combine(SuiteConfig.Repo, "Dir4"); // this directory contains only a .txt file
             var search = await _mediaSearch.SearchMedia(path, _imageExtensions);
             
             search.ShouldBeEmpty();

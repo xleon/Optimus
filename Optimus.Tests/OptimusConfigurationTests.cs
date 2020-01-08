@@ -13,7 +13,7 @@ namespace Optimus.Tests
             => OptimusConfiguration.Delete(SuiteConfig.Repo);
 
         [Test]
-        public void Json_will_be_created_if_it_doesnt_exist()
+        public void Json_should_be_created_if_it_doesnt_exist()
         {
             var (config, created) = OptimusConfiguration.GetOrCreate(SuiteConfig.Repo);
             
