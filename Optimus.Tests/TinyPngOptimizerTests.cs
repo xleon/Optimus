@@ -73,12 +73,12 @@ namespace Optimus.Tests
 
         [Test]
         [Category("Integration")]
-        public void Optimize_should_throw_when_all_keys_invalid()
+        public async Task Optimize_should_throw_when_all_keys_invalid()
         {
             var request = GetRequest("arandano.jpg");
             var optimizer = new TinyPngOptimizer(new []{"bad1", "bad2", "bad3"});
 
-            Should.Throw<OptimusApiAccessException>(() => optimizer.Optimize(request));
+            await Should.ThrowAsync<OptimusApiAccessException>(() => optimizer.Optimize(request));
             Tinify.Key.ShouldBe("bad3");
         }
 
