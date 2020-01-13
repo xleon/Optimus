@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -14,6 +15,32 @@ namespace Optimus.Tests
     {
         private readonly string[] _imageExtensions = {".jpg", ".png"};
         private readonly IMediaSearch _mediaSearch = new GitMediaSearch();
+
+        [Test]
+        public void CanSearch_should_return_true_on_git_repository()
+        {
+            Should.NotThrow(async() => await _mediaSearch.CheckSearchDirectory(SuiteConfig.Repo));
+        }
+
+        [Test]
+        public void CanSearch_should_return_throw_on_unexisting_directory()
+        {
+            Should.Throw<DirectoryNotFoundException>(async () => 
+                await _mediaSearch.CheckSearchDirectory("TheFakeDirectory"));
+        }
+
+        [Test]
+        public void CanSearch_should_throw_on_non_git_directory()
+        {
+            const string dir = "NoGitDirectory";
+            var zip = Path.Combine("TestHelpers", $"{dir}.zip");
+            ZipFile.ExtractToDirectory(zip, ".");
+            
+            Should.Throw<InvalidOperationException>(async () => 
+                await _mediaSearch.CheckSearchDirectory(dir));
+            
+            Directory.Delete(dir, true);
+        }
         
         [Test]
         [TestCase(".jpg", 4)]
@@ -53,10 +80,14 @@ namespace Optimus.Tests
         [Test]
         public async Task Search_in_directory_without_images_should_return_empty_enumerable()
         {
-            var path = Path.Combine(SuiteConfig.Repo, "Dir4"); // this directory contains only a .txt file
-            var search = await _mediaSearch.SearchMedia(path, _imageExtensions);
+            const string dir = "GitRepoWithoutImages";
+            var zip = Path.Combine("TestHelpers", $"{dir}.zip");
+            ZipFile.ExtractToDirectory(zip, ".");
             
+            var search = await _mediaSearch.SearchMedia(dir, _imageExtensions);
             search.ShouldBeEmpty();
+            
+            Directory.Delete(dir, true);
         }
 
         [Test]

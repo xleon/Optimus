@@ -10,12 +10,22 @@ namespace Optimus
 {
     public class GitMediaSearch : IMediaSearch
     {
+        public Task CheckSearchDirectory(string directory)
+        {
+            if(!Directory.Exists(directory))
+                throw new DirectoryNotFoundException();
+            
+            if(!Directory.Exists(Path.Combine(directory, ".git")))
+                throw new InvalidOperationException($"{directory} is not a git repository");
+
+            return Task.CompletedTask;
+        }
+
         public async Task<IEnumerable<string>> SearchMedia(
             string directory, 
             string[] extensions)
         {
-            if(!Directory.Exists(directory))
-                throw new DirectoryNotFoundException();
+            await CheckSearchDirectory(directory);
             
             if(extensions == null || !extensions.Any() || !extensions.All(x => x.StartsWith(".")))
                 throw new ArgumentException("Incorrect extensions: " +

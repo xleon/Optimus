@@ -1,4 +1,5 @@
 using System.IO;
+using Newtonsoft.Json;
 using Optimus.Exceptions;
 using Optimus.Helpers;
 
@@ -8,6 +9,9 @@ namespace Optimus.Model
     {
         public string[] TinyPngApiKeys { get; set; }
         public string[] FileExtensions { get; set; }
+        
+        [JsonIgnore]
+        public string ConfigurationFilePath { get; private set; }
 
         private static readonly string FileName = $"{nameof(OptimusConfiguration)}.json";
 
@@ -20,7 +24,8 @@ namespace Optimus.Model
                 var configuration = new OptimusConfiguration
                 {
                     TinyPngApiKeys = new string[]{},
-                    FileExtensions = new []{".jpg", ".jpeg", ".png"}
+                    FileExtensions = new []{".jpg", ".jpeg", ".png"},
+                    ConfigurationFilePath = configurationPath
                 };
                 
                 configuration.Save(directoryPath);
