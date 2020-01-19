@@ -15,7 +15,8 @@
         <RepositoryUrl>https://github.com/xleon/Optimus</RepositoryUrl>
         <PackageVersion>1.0.0</PackageVersion>
         <LangVersion>latest</LangVersion>
-        <!--        <PackageReleaseNotes></PackageReleaseNotes>-->
+        <Title>Optimus global tool</Title>
+        <PackageReleaseNotes>https://github.com/xleon/Optimus/releases</PackageReleaseNotes>
     </PropertyGroup>
 
     <ItemGroup>

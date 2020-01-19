@@ -12,26 +12,6 @@ namespace OptimusTool
 {
     static class Program
     {
-        /// <summary>
-        /// $optimus
-        /// - ✔ check if the current directory is a git repo, show error otherwise
-        /// - ✔ check configuration file: if it was created right now or it's lacking api keys, show message (and help to create a TinyPng apikey)
-        /// - ✔ search all media files
-        /// - ✔ if no media files show message "Nothing to optimise. Add images to your project and run this command again"
-        /// - ✔ check untracked files
-        /// - ✔ if all media is tracked show message "All images in this repo are already optimised and tracked"
-        /// - ✔ show total number of images that will be optimised
-        /// - ✔ start optimising and tracking 1 by 1: show file size percentage saved (eg: 1/20 path/to/file 35% off original size)
-        /// - end: show percentage saved overall
-        ///
-        /// $optimus -force
-        /// - search media files
-        /// - ask question: Do you wish to force tracking of all images?
-        /// - add all media files to tracker file
-        /// 
-        /// </summary>
-        /// <param name="args"></param>
-        /// <returns></returns>
         static async Task<int> Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
