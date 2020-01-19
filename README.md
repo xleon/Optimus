@@ -63,6 +63,6 @@ Multiple keys can be used. When a key reaches its monthly limits the next one wi
 The tool will scan all images (only files added to git) with the extensions specified in the configuration file and will start optimising each one with TinyPNG API.
 Optimised files will be tracked in a text file at your project root called `OptimusFileTracker.txt`.
 
-Both `OptimusConfiguration.txt` and `OptimusFileTracker.txt` should be added to git so that other developers can optimise only the new images added to the project.
+Both `OptimusConfiguration.txt` and `OptimusFileTracker.txt` should be added to git so that either you or other developers can optimise only the added or modified images.
 
 Deleted or modified images from the file system will be untracked before optimisation starts, so you should not have to worry about them. 
