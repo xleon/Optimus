@@ -31,19 +31,20 @@ dotnet tool uninstall -g optimustool
 
 # Use
 
-From anywhere in your system:
-
 ```console
-cd /your/project/path && optimustool
+cd /your/project/path
+optimustool
 ```
 
 or
+
 ```console
 optimustool /your/project/absolute/path
 ```
 
+
 The first time you run the command a configuration .txt file will be created in your project root (`OptimusConfiguration.txt`). You must edit the file with your TinyPNG API key/s. 
-You can use multiple keys. When 1 key reaches its monthly limits the next one will be used.  
+Multiple keys can be used. When a key reaches its monthly limits the next one will be used.  
 
 ```json
 {
@@ -64,4 +65,4 @@ Optimised files will be tracked in a text file at your project root called `Opti
 
 Both `OptimusConfiguration.txt` and `OptimusFileTracker.txt` should be added to git so that other developers can optimise only the new images added to the project.
 
-Deleted or modified images from the file system will be untracked when the command starts, so you should not have to worry about them. 
+Deleted or modified images from the file system will be untracked before optimisation starts, so you should not have to worry about them. 
