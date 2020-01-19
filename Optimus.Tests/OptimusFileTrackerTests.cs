@@ -41,7 +41,7 @@ namespace Optimus.Tests
             var tracks = (await _tracker.GetTrackInfos()).ToList();
             
             tracks.ShouldAllBe(x => !x.Updated);
-            tracks.ShouldAllBe(x => x.LastWriteTimeUtc < DateTime.UtcNow);
+            tracks.ShouldAllBe(x => x.FileHash != null);
             
             tracks[0].RelativePath.ShouldBe("Dir1/avellana.jpg");
             tracks[1].RelativePath.ShouldBe("Dir1/icon.png");
@@ -51,7 +51,7 @@ namespace Optimus.Tests
         }
 
         [Test]
-        public async Task Track_should_update_lastWriteTimeUtc_when_file_already_tracked()
+        public async Task Track_should_update_hash_when_file_already_tracked()
         {
             var file = Path.Combine(SuiteConfig.Repo, "Dir1/avellana.jpg");
             var newFile = Path.Combine(SuiteConfig.Repo, "copy.jpg");
@@ -64,7 +64,7 @@ namespace Optimus.Tests
             var result = await _tracker.Track("copy.jpg");
             
             result.Updated.ShouldBeTrue();
-            result.LastWriteTimeUtc.ShouldNotBe(info.LastWriteTimeUtc);
+            // result.LastWriteTimeUtc.ShouldNotBe(info.LastWriteTimeUtc);
         }
 
         [Test]

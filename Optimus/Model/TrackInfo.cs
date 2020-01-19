@@ -1,16 +1,14 @@
-using System;
-
 namespace Optimus.Model
 {
     public class TrackInfo
     {
         public string RelativePath { get; }
-        public DateTime LastWriteTimeUtc { get; internal set; }
+        public string FileHash { get; internal set; }
         public bool Updated { get; internal set; }
         
-        public TrackInfo(DateTime lastWriteTimeUtc, string relativePath)
+        public TrackInfo(string fileHash, string relativePath)
         {
-            LastWriteTimeUtc = lastWriteTimeUtc;
+            FileHash = fileHash;
             RelativePath = relativePath;
         }
     }
