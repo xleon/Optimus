@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -136,10 +135,8 @@ namespace Optimus
         
         private string CreateLine(TrackInfo trackInfo)
         {
-            var hash = Path.Combine(_directoryPath, trackInfo.RelativePath).CalculateMd5();
-            // var serializedLastWriteTimeUtc = trackInfo.LastWriteTimeUtc.ToString("O");
             var path = trackInfo.RelativePath.NormalizeSeparators();
-            return $"[{hash}] {path}";
+            return $"[{trackInfo.FileHash}] {path}";
         }
     }
 }
