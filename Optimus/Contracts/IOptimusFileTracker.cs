@@ -9,6 +9,7 @@ namespace Optimus.Contracts
     {
         FileInfo GetTrackerFileInfo();
         Task<IEnumerable<TrackInfo>> GetTrackInfos();
+        Task<IEnumerable<string>> GetUntrackedPaths(IEnumerable<string> allPaths);
         Task<TrackInfo> Track(string relativePath);
         Task UntrackRemovedAndChangedFiles();
         bool UntrackAll();

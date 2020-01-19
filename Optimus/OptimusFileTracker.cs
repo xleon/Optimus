@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Optimus.Contracts;
+using Optimus.Helpers;
 using Optimus.Model;
 
 namespace Optimus
@@ -43,6 +44,14 @@ namespace Optimus
             return infos;
         }
 
+        public async Task<IEnumerable<string>> GetUntrackedPaths(IEnumerable<string> allPaths)
+        {
+            var tracked = await GetTrackInfos();
+
+            return allPaths
+                .Where(path => tracked.All(x => x.RelativePath != path));
+        }
+
         public async Task<TrackInfo> Track(string relativePath)
         {
             var absolutePath = Path.Combine(_directoryPath, relativePath);
@@ -50,7 +59,7 @@ namespace Optimus
             
             if(!file.Exists)
                 throw new FileNotFoundException(
-                    $"The provided path does not point to an existing file", 
+                    "The provided path does not point to an existing file", 
                     absolutePath);
             
             var trackInfos = (await GetTrackInfos())
@@ -128,7 +137,8 @@ namespace Optimus
         private static string CreateLine(TrackInfo trackInfo)
         {
             var serializedLastWriteTimeUtc = trackInfo.LastWriteTimeUtc.ToString("O");
-            return $"[{serializedLastWriteTimeUtc}] {trackInfo.RelativePath}";
+            var path = trackInfo.RelativePath.NormalizeSeparators();
+            return $"[{serializedLastWriteTimeUtc}] {path}";
         }
     }
 }

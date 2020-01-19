@@ -98,6 +98,25 @@ namespace Optimus.Tests
             tracks.Count.ShouldBe(1);
             tracks.First().RelativePath.ShouldBe("Dir1/avellana.jpg");
         }
+
+        [Test]
+        public async Task GetUntrackedPaths_should_return_paths_not_tracked()
+        {
+            var trackerFile = Path.Combine(SuiteConfig.Repo, OptimusFileTracker.FileName);
+            
+            File.WriteAllLines(trackerFile, new []
+            {
+                "[2020-01-01] Dir1/fake.png"
+            });
+
+            await _tracker.Track("Dir1/avellana.jpg");
+
+            var untracked = (await _tracker.GetUntrackedPaths(new[] {"/Dir1/untracked.png"})).ToList()
+                .ToList();
+            
+            untracked.Count.ShouldBe(1);
+            untracked.First().ShouldBe("/Dir1/untracked.png");
+        }
         
         [Test]
         public void UntrackAll_should_delete_tracker_file()

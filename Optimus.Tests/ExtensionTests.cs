@@ -17,5 +17,13 @@ namespace Optimus.Tests
             new string[]{}.IsNullOrEmpty().ShouldBeTrue();
             new []{1,2}.IsNullOrEmpty().ShouldBeFalse();
         }
+
+        [Test]
+        public void NormalizeSeparators()
+        {
+            "/a/b".NormalizeSeparators().ShouldBe("/a/b");
+            "\\a\\b".NormalizeSeparators().ShouldBe("/a/b");
+            "\\\\a\\\\b".NormalizeSeparators().ShouldBe("/a/b");
+        }
     }
 }
