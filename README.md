@@ -33,13 +33,13 @@ dotnet tool uninstall -g optimustool
 
 ```console
 cd /your/project/path
-optimustool
+optimus
 ```
 
 or
 
 ```console
-optimustool /your/project/absolute/path
+optimus /your/project/absolute/path
 ```
 
 
