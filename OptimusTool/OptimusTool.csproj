@@ -10,7 +10,7 @@
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <Authors>Diego Ponce de León</Authors>
-        <Description>Reduce the file size your project images</Description>
+        <Description>Command line tool to track and optimise all the images under a git repo</Description>
         <PackageProjectUrl>https://github.com/xleon/Optimus</PackageProjectUrl>
         <RepositoryUrl>https://github.com/xleon/Optimus</RepositoryUrl>
         <PackageVersion>1.0.1</PackageVersion>
