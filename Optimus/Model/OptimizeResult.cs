@@ -24,7 +24,7 @@ namespace Optimus.Model
 
         public override string ToString() =>
             Success
-                ? $"✔ [{(decimal)Length / OriginalLength:P}] {FilePath}"
-                : $"✖ {FilePath}: {ErrorMessage}";
+                ? $"[{(decimal)Length / OriginalLength:P}] {FilePath}"
+                : $"{FilePath}: {ErrorMessage}";
     }
 }

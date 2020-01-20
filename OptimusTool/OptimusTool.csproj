@@ -13,7 +13,7 @@
         <Description>Command line tool to track and optimise all the images under a git repo</Description>
         <PackageProjectUrl>https://github.com/xleon/Optimus</PackageProjectUrl>
         <RepositoryUrl>https://github.com/xleon/Optimus</RepositoryUrl>
-        <PackageVersion>1.0.1</PackageVersion>
+        <PackageVersion>1.0.2</PackageVersion>
         <LangVersion>latest</LangVersion>
         <Title>Optimus global tool</Title>
         <PackageReleaseNotes>https://github.com/xleon/Optimus/releases</PackageReleaseNotes>
@@ -25,6 +25,10 @@
 
     <ItemGroup>
       <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="nupkg" />
     </ItemGroup>
 
 </Project>
