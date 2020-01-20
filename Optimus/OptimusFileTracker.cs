@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -61,6 +60,8 @@ namespace Optimus
                 throw new FileNotFoundException(
                     "The provided path does not point to an existing file", 
                     absolutePath);
+
+            var fileHash = file.FullName.CalculateMd5();
             
             var trackInfos = (await GetTrackInfos())
                 .ToList();
@@ -70,17 +71,17 @@ namespace Optimus
             
             if(match == null)
             {
-                match = new TrackInfo(file.LastWriteTimeUtc, relativePath) {Updated = true};
+                match = new TrackInfo(fileHash, relativePath) {Updated = true};
                 trackInfos.Add(match);
             }
-            else if (match.LastWriteTimeUtc == file.LastWriteTimeUtc)
+            else if (match.FileHash == fileHash)
             {
                 // assume the file didn't change and it's already tracked
                 return match;
             }
             else
             {
-                match.LastWriteTimeUtc = file.LastWriteTimeUtc;
+                match.FileHash = fileHash;
                 match.Updated = true;
             }
             
@@ -100,9 +101,7 @@ namespace Optimus
                 .Where(x =>
                 {
                     var path = Path.Combine(_directoryPath, x.RelativePath);
-                    var fileInfo = new FileInfo(path);
-                    
-                    return fileInfo.Exists && fileInfo.LastWriteTimeUtc == x.LastWriteTimeUtc;
+                    return File.Exists(path) && path.CalculateMd5() == x.FileHash;
                 })
                 .OrderBy(x => x.RelativePath)
                 .Select(CreateLine)
@@ -128,17 +127,16 @@ namespace Optimus
         private static TrackInfo ReadLine(string line)
         {
             var parts = line.Substring(1).Split("] ");
-            var lastWriteTimeUtc = DateTime.Parse(parts[0], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+            var fileHash = parts[0];
             var path = parts[1];
 
-            return new TrackInfo(lastWriteTimeUtc, path);
+            return new TrackInfo(fileHash, path);
         }
         
-        private static string CreateLine(TrackInfo trackInfo)
+        private string CreateLine(TrackInfo trackInfo)
         {
-            var serializedLastWriteTimeUtc = trackInfo.LastWriteTimeUtc.ToString("O");
             var path = trackInfo.RelativePath.NormalizeSeparators();
-            return $"[{serializedLastWriteTimeUtc}] {path}";
+            return $"[{trackInfo.FileHash}] {path}";
         }
     }
 }

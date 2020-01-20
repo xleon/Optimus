@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -41,7 +40,7 @@ namespace Optimus.Tests
             var tracks = (await _tracker.GetTrackInfos()).ToList();
             
             tracks.ShouldAllBe(x => !x.Updated);
-            tracks.ShouldAllBe(x => x.LastWriteTimeUtc < DateTime.UtcNow);
+            tracks.ShouldAllBe(x => x.FileHash != null);
             
             tracks[0].RelativePath.ShouldBe("Dir1/avellana.jpg");
             tracks[1].RelativePath.ShouldBe("Dir1/icon.png");
@@ -51,24 +50,28 @@ namespace Optimus.Tests
         }
 
         [Test]
-        public async Task Track_should_update_lastWriteTimeUtc_when_file_already_tracked()
+        public async Task Track_should_update_hash_when_file_already_tracked()
         {
-            var file = Path.Combine(SuiteConfig.Repo, "Dir1/avellana.jpg");
-            var newFile = Path.Combine(SuiteConfig.Repo, "copy.jpg");
-            File.Copy(file, newFile);
+            File.Copy(
+                Path.Combine(SuiteConfig.Repo, "Dir1/avellana.jpg"), 
+                Path.Combine(SuiteConfig.Repo, "copy.jpg"));
 
             var info = await _tracker.Track("copy.jpg");
-
-            File.SetLastWriteTimeUtc(newFile, DateTime.UtcNow);
+            var hash = info.FileHash;
+            
+            File.Copy(
+                Path.Combine(SuiteConfig.Repo, "Dir3/centeno.jpg"), 
+                Path.Combine(SuiteConfig.Repo, "copy.jpg"), 
+                true);
 
             var result = await _tracker.Track("copy.jpg");
-            
             result.Updated.ShouldBeTrue();
-            result.LastWriteTimeUtc.ShouldNotBe(info.LastWriteTimeUtc);
+            result.FileHash.ShouldNotBeNull();
+            result.FileHash.ShouldNotBe(hash);
         }
 
         [Test]
-        public async Task Track_should_not_update_file_with_same_lastWriteTimeUtc()
+        public async Task Track_should_not_update_file_with_same_hash()
         {
             var trackInfo = await _tracker.Track("Dir1/avellana.jpg");
             
@@ -86,7 +89,7 @@ namespace Optimus.Tests
             
             File.WriteAllLines(trackerFile, new []
             {
-                "[2020-01-01] Dir1/fake.png"
+                "[123456789] Dir1/fake.png"
             });
 
             await _tracker.Track("Dir1/avellana.jpg");
@@ -102,13 +105,6 @@ namespace Optimus.Tests
         [Test]
         public async Task GetUntrackedPaths_should_return_paths_not_tracked()
         {
-            var trackerFile = Path.Combine(SuiteConfig.Repo, OptimusFileTracker.FileName);
-            
-            File.WriteAllLines(trackerFile, new []
-            {
-                "[2020-01-01] Dir1/fake.png"
-            });
-
             await _tracker.Track("Dir1/avellana.jpg");
 
             var untracked = (await _tracker.GetUntrackedPaths(new[] {"/Dir1/untracked.png"})).ToList()

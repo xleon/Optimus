@@ -43,7 +43,7 @@ optimustool /your/project/absolute/path
 ```
 
 
-The first time you run the command a configuration .txt file will be created in your project root (`OptimusConfiguration.txt`). You must edit the file with your TinyPNG API key/s. 
+The first time you run the command a configuration .txt file will be created in your project root (`OptimusConfiguration.txt`). You must edit the file with your TinyPNG API key/s (Get your key at https://tinypng.com/developers). 
 Multiple keys can be used. When a key reaches its monthly limits the next one will be used.  
 
 ```json

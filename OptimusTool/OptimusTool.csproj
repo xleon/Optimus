@@ -7,13 +7,13 @@
         <PackageId>optimustool</PackageId>
         <PackageOutputPath>./nupkg</PackageOutputPath>
         <ToolCommandName>optimus</ToolCommandName>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <Authors>Diego Ponce de León</Authors>
         <Description>Reduce the file size your project images</Description>
         <PackageProjectUrl>https://github.com/xleon/Optimus</PackageProjectUrl>
         <RepositoryUrl>https://github.com/xleon/Optimus</RepositoryUrl>
-        <PackageVersion>1.0.0</PackageVersion>
+        <PackageVersion>1.0.1</PackageVersion>
         <LangVersion>latest</LangVersion>
         <Title>Optimus global tool</Title>
         <PackageReleaseNotes>https://github.com/xleon/Optimus/releases</PackageReleaseNotes>
