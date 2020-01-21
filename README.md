@@ -5,6 +5,8 @@
 # Optimus
 Command line tool to track and optimise all the images under a git repo
 
+[![asciicast](https://asciinema.org/a/k72W630sFXs48erUqCKRL2sXW.svg)](https://asciinema.org/a/k72W630sFXs48erUqCKRL2sXW)
+
 # Install
 
 Make sure you have [dotnet core](https://dotnet.microsoft.com/download) installed at your machine.
