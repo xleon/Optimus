@@ -5,7 +5,7 @@
 # Optimus
 Command line tool to track and optimise all the images under a git repo
 
-[![asciicast](https://asciinema.org/a/k72W630sFXs48erUqCKRL2sXW.svg)](https://asciinema.org/a/k72W630sFXs48erUqCKRL2sXW)
+[![asciicast](https://asciinema.org/a/k72W630sFXs48erUqCKRL2sXW.svg)](https://asciinema.org/a/k72W630sFXs48erUqCKRL2sXW?size=medium&speed=1.5)
 
 # Install
 
