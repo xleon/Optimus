@@ -1,6 +1,7 @@
 [![AppVeyor](https://img.shields.io/appveyor/ci/xleon/optimus?style=for-the-badge)](https://ci.appveyor.com/project/xleon/optimus) 
 [![NuGet](https://img.shields.io/nuget/v/optimustool?style=for-the-badge)](https://www.nuget.org/packages/optimustool/) 
 [![NuGet](https://img.shields.io/nuget/dt/optimustool?style=for-the-badge)](https://www.nuget.org/packages/optimustool/)
+[![Codecov](https://img.shields.io/codecov/c/github/xleon/Optimus?style=for-the-badge)](https://codecov.io/gh/xleon/Optimus/)
 
 # Optimus
 Command line tool to track and optimise all the images under a git repo
