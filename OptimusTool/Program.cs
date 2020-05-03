@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using ByteSizeLib;
 using Optimus;
 using Optimus.Contracts;
 using Optimus.Helpers;
@@ -35,8 +36,8 @@ namespace OptimusTool
                 
                 if(!media.Any())
                 {
-                    Log.Information("Nothing to optimise. Add images to your project and run this command again");
-                    Environment.Exit(0);
+                    Log.Information("Nothing to optimise. Add images to your project and commit them to git and then run this command again");
+                    return 0;
                 }
 
                 var tracker = new OptimusFileTracker(directory);
@@ -47,7 +48,7 @@ namespace OptimusTool
                 if(!untrackedPaths.Any())
                 {
                     Log.Information("All images in this repo are already optimised and tracked");
-                    Environment.Exit(0);
+                    return 0;
                 }
                 
                 var imagesStr = untrackedPaths.Count == 1 ? "image" : "images";
@@ -57,6 +58,8 @@ namespace OptimusTool
                 long reduceAggregation = 0;
                 var errored = 0;
                 var succeded = 0;
+                var count = 1;
+                var total = untrackedPaths.Count;
                 
                 foreach (var path in untrackedPaths)
                 {
@@ -66,7 +69,7 @@ namespace OptimusTool
 
                     if (!result.Success)
                     {
-                        Log.Error(result.ToString());
+                        Log.Error($"{path}: {result.ErrorMessage}");
                         errored++;
                         continue;
                     }
@@ -76,8 +79,16 @@ namespace OptimusTool
                     await tracker.Track(path.NormalizeSeparators());
 
                     succeded++;
+
+                    var progress = $"{count}/{total}";
+                    var sizeComparison = $"{ByteSize.FromBytes(result.OriginalLength).ToString("KB")} > {ByteSize.FromBytes(result.Length).ToString("KB")}";
+                    var percentage = $"{(decimal) result.Length / result.OriginalLength:P}";
+                    var sizeString = $"{progress} [{sizeComparison} ({percentage} off original size)]";
+                    var message = $"{sizeString.PadRight(60)} {path}";
                     
-                    Log.Information(result.ToString());
+                    Log.Information(message);
+
+                    count++;
                 }
                 
                 Log.Information("------------------------------------------------");

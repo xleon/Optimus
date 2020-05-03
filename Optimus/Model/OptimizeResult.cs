@@ -21,10 +21,5 @@ namespace Optimus.Model
             ErrorMessage = errorMessage;
             Length = new FileInfo(filePath).Length;
         }
-
-        public override string ToString() =>
-            Success
-                ? $"[{(decimal)Length / OriginalLength:P}] {FilePath}"
-                : $"{FilePath}: {ErrorMessage}";
     }
 }
