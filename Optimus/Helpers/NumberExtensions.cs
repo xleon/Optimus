@@ -5,15 +5,15 @@ namespace Optimus.Helpers
         public static string ToFileLengthRepresentation(this long fileLength)
         {
             if (fileLength >= 1 << 30)
-                return $"{fileLength >> 30}Gb";
+                return $"{fileLength >> 30} GB";
             
             if (fileLength >= 1 << 20)
-                return $"{fileLength >> 20}Mb";
+                return $"{fileLength >> 20} MB";
             
             if (fileLength >= 1 << 10)
-                return $"{fileLength >> 10}Kb";
+                return $"{fileLength >> 10} KB";
 
-            return $"{fileLength}B";
+            return $"{fileLength} B";
         }
     }
 }

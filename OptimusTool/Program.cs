@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,7 +27,13 @@ namespace OptimusTool
             return exitCode;
         }
 
-        private static async Task<int> Run(string[] args)
+        private static string _imagesStr;
+        private static int _succeded;
+        private static int _errored;
+        private static long _reduceAggregation;
+        private static int _total;
+        
+        private static async Task<int> Run(IReadOnlyList<string> args)
         {
             try
             {
@@ -51,15 +58,17 @@ namespace OptimusTool
                     return 0;
                 }
                 
-                var imagesStr = untrackedPaths.Count == 1 ? "image" : "images";
-                Log.Information($"Starting optimisation for {untrackedPaths.Count} {imagesStr}...");
+                _imagesStr = untrackedPaths.Count == 1 ? "image" : "images";
+                Log.Information($"Starting optimisation for {untrackedPaths.Count} {_imagesStr}...");
 
                 var optimizer = new TinyPngOptimizer(config.TinyPngApiKeys);
-                long reduceAggregation = 0;
-                var errored = 0;
-                var succeded = 0;
+                _reduceAggregation = 0;
+                _errored = 0;
+                _succeded = 0;
                 var count = 1;
-                var total = untrackedPaths.Count;
+                _total = untrackedPaths.Count;
+                
+                Console.CancelKeyPress += (sender, eventArgs) => ShowStats();
                 
                 foreach (var path in untrackedPaths)
                 {
@@ -70,17 +79,17 @@ namespace OptimusTool
                     if (!result.Success)
                     {
                         Log.Error($"{path}: {result.ErrorMessage}");
-                        errored++;
+                        _errored++;
                         continue;
                     }
 
-                    reduceAggregation += result.OriginalLength - result.Length;
+                    _reduceAggregation += result.OriginalLength - result.Length;
                     
                     await tracker.Track(path.NormalizeSeparators());
 
-                    succeded++;
+                    _succeded++;
 
-                    var progress = $"{count}/{total}";
+                    var progress = $"{count}/{_total}";
                     var sizeComparison = $"{ByteSize.FromBytes(result.OriginalLength).ToString("KB")} > {ByteSize.FromBytes(result.Length).ToString("KB")}";
                     var percentage = $"{(decimal) result.Length / result.OriginalLength:P}";
                     var sizeString = $"{progress} [{sizeComparison} ({percentage} off original size)]";
@@ -91,11 +100,8 @@ namespace OptimusTool
                     count++;
                 }
                 
-                Log.Information("------------------------------------------------");
-                Log.Information($"{succeded} {imagesStr} optimised");
-                Log.Information($"{errored} optimizations failed");
-                Log.Information($"Overall project size reduction: {reduceAggregation.ToFileLengthRepresentation()}");
-
+                ShowStats();
+                
                 return 0;
             }
             catch (Exception e)
@@ -105,7 +111,16 @@ namespace OptimusTool
             }
         }
 
-        private static async Task<(string directory, OptimusConfiguration config)> CheckTargetDirectory(string[] args, IMediaSearch mediaSearch)
+        private static void ShowStats()
+        {
+            Log.Information(string.Empty.PadLeft(40, '-'));
+            Log.Information($"{_succeded} {_imagesStr} optimised");
+            Log.Information($"{_errored} optimizations failed");
+            Log.Information($"{_total - _succeded - _errored} optimizations cancelled");
+            Log.Information($"Overall project size reduction: {_reduceAggregation.ToFileLengthRepresentation()}");
+        }
+
+        private static async Task<(string directory, OptimusConfiguration config)> CheckTargetDirectory(IReadOnlyList<string> args, IMediaSearch mediaSearch)
         {
             var directory = GetDirectory(args);
 
@@ -132,9 +147,9 @@ namespace OptimusTool
             return (directory, config);
         }
 
-        private static string GetDirectory(string[] args)
+        private static string GetDirectory(IReadOnlyList<string> args)
         {
-            if (args == null || args.Length == 0)
+            if (args == null || args.Count == 0)
                 return Directory.GetCurrentDirectory();
             
             if (!Directory.Exists(args[0]))
