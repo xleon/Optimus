@@ -2,18 +2,18 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>netcoreapp2.1</TargetFramework>
+        <TargetFramework>net5.0</TargetFramework>
         <PackAsTool>true</PackAsTool>
         <PackageId>optimustool</PackageId>
         <PackageOutputPath>./nupkg</PackageOutputPath>
         <ToolCommandName>optimus</ToolCommandName>
-        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <Authors>Diego Ponce de León</Authors>
         <Description>Command line tool to track and optimise all the images under a git repo</Description>
         <PackageProjectUrl>https://github.com/xleon/Optimus</PackageProjectUrl>
         <RepositoryUrl>https://github.com/xleon/Optimus</RepositoryUrl>
-        <PackageVersion>1.0.2</PackageVersion>
+        <PackageVersion>1.0.3</PackageVersion>
         <LangVersion>latest</LangVersion>
         <Title>Optimus global tool</Title>
         <PackageReleaseNotes>https://github.com/xleon/Optimus/releases</PackageReleaseNotes>
